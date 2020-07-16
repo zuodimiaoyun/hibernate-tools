@@ -335,11 +335,11 @@ public abstract class AbstractStrategy implements RevengStrategy {
         return propertyName;      
 	}
 
-	public Map<String,MetaAttribute> tableToMetaAttributes(TableIdentifier tableIdentifier) {
+	public Map<String,MetaAttribute> tableToMetaAttributes(Table table) {
 		return null;
 	}
 
-	public Map<String, MetaAttribute> columnToMetaAttributes(TableIdentifier identifier, String column) {
+	public Map<String, MetaAttribute> columnToMetaAttributes(Table table, String column) {
 		return null;
 	}
 
@@ -351,6 +351,8 @@ public abstract class AbstractStrategy implements RevengStrategy {
 		return null;
 	}
 
-	
-	
+	@Override
+	public String getEntityProxyInterfaceClass(String entity) {
+		return null;
+	}
 }

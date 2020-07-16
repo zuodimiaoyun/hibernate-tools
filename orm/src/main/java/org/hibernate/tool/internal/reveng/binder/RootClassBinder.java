@@ -85,11 +85,12 @@ public class RootClassBinder extends AbstractBinder {
 		RootClass rc = new RootClass(getMetadataBuildingContext());
 		TableIdentifier tableIdentifier = TableIdentifier.create(table);
 		String className = getRevengStrategy().tableToClassName( tableIdentifier );
+		String interfaceName = getRevengStrategy().getEntityProxyInterfaceClass(className);
 		LOGGER.log(Level.INFO, "Building entity " + className + " based on " + tableIdentifier);
 		rc.setEntityName( className );
 		rc.setJpaEntityName( StringHelper.unqualify( className ) );
 		rc.setClassName( className );
-		rc.setProxyInterfaceName( rc.getEntityName() ); // TODO: configurable ?
+		rc.setProxyInterfaceName( interfaceName == null ? className : interfaceName ); // TODO: configurable ?
 		rc.setLazy(true);
 		rc.setMetaAttributes(getMetaAttributes(table));
 		rc.setDiscriminatorValue( rc.getEntityName() );
@@ -165,16 +166,7 @@ public class RootClassBinder extends AbstractBinder {
     }
 
 	private Map<String,MetaAttribute> getMetaAttributes(Table table) {
-		Map<String,MetaAttribute> result = null;
-		TableIdentifier tableIdentifier = TableIdentifier.create(table);
-		result = getRevengStrategy().tableToMetaAttributes(tableIdentifier);
-		if (result == null) {
-			tableIdentifier = RevengUtils.createTableIdentifier(
-					table, 
-					getDefaultCatalog(), 
-					getDefaultSchema());
-			result = getRevengStrategy().tableToMetaAttributes(tableIdentifier);
-		}
+		Map<String,MetaAttribute> result = getRevengStrategy().tableToMetaAttributes(table);;
 		if (result == null) {
 			result = Collections.emptyMap();
 		}

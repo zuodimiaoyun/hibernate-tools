@@ -21,8 +21,8 @@ public class MySQLMetaDataDialect extends JDBCMetaDataDialect {
 				table = caseForSearch( table );
 				
 				log.debug("geSuggestedPrimaryKeyStrategyName(" + catalog + "." + schema + "." + table + ")");
-				
-				sql = "show table status " + (catalog==null?"":" from " + catalog + " ") + (table==null?"":" like '" + table + "' ");
+				String db = catalog == null || "def".equals(catalog) ? schema : catalog;
+				sql = "show table status " + (db==null?"":" from " + db + " ") + (table==null?"":" like '" + table + "' ");
 				PreparedStatement statement = getConnection().prepareStatement( sql );
 				
 				final String sc = schema;

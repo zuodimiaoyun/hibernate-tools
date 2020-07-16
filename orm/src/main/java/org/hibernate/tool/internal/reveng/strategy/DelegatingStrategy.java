@@ -132,12 +132,12 @@ public class DelegatingStrategy implements RevengStrategy {
 		return delegate==null?null:delegate.foreignKeyToManyToManyName( fromKey, middleTable, toKey, uniqueReference );
 	}
 
-	public Map<String,MetaAttribute> tableToMetaAttributes(TableIdentifier tableIdentifier) {
-		return delegate==null?null:delegate.tableToMetaAttributes( tableIdentifier );		
+	public Map<String,MetaAttribute> tableToMetaAttributes(Table table) {
+		return delegate==null?null:delegate.tableToMetaAttributes(table);
 	}
 
-	public Map<String, MetaAttribute> columnToMetaAttributes(TableIdentifier identifier, String column) {
-		return delegate==null?null:delegate.columnToMetaAttributes( identifier, column );
+	public Map<String, MetaAttribute> columnToMetaAttributes(Table table, String column) {
+		return delegate==null?null:delegate.columnToMetaAttributes(table, column );
 	}
 
 	public AssociationInfo foreignKeyToAssociationInfo(ForeignKey foreignKey) {
@@ -147,11 +147,17 @@ public class DelegatingStrategy implements RevengStrategy {
 	public AssociationInfo foreignKeyToInverseAssociationInfo(ForeignKey foreignKey) {
 		return delegate==null?null:delegate.foreignKeyToInverseAssociationInfo(foreignKey);
 	}
-	
+
+	@Override
+	public String getEntityProxyInterfaceClass(String entity) {
+		return delegate==null?null:delegate.getEntityProxyInterfaceClass(entity);
+	}
+
+
 	public String foreignKeyToInverseEntityName(String keyname,
-			TableIdentifier fromTable, List<?> fromColumnNames,
-			TableIdentifier referencedTable, List<?> referencedColumnNames,
-			boolean uniqueReference) {
+												TableIdentifier fromTable, List<?> fromColumnNames,
+												TableIdentifier referencedTable, List<?> referencedColumnNames,
+												boolean uniqueReference) {
 		return delegate==null?null:delegate.foreignKeyToInverseEntityName(keyname, fromTable, fromColumnNames, referencedTable, referencedColumnNames, uniqueReference);
 	}	
 	

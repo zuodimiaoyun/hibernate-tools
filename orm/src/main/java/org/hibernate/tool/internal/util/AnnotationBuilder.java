@@ -95,21 +95,21 @@ public class AnnotationBuilder {
 		
 	}
 
-	public void addQuotedAttributes(String name, Iterator<?> iterator) {
+	public AnnotationBuilder addQuotedAttributes(String name, Iterator<?> iterator) {
 		List<String> values = new ArrayList<String>();
 		while ( iterator.hasNext() ) {
 			values.add(quote( iterator.next().toString() ));
 		}
-		addAttribute(name, values.toArray( new String[values.size()] ));
+		return addAttribute(name, values.toArray( new String[values.size()] ));
 	}
 
-	public void addAttributes(String name, Iterator<?> iterator) {
+	public AnnotationBuilder addAttributes(String name, Iterator<?> iterator) {
 		List<String> values = new ArrayList<String>();
 		while ( iterator.hasNext() ) {
 			String element = iterator.next().toString();
 			values.add( element );
 		}
-		addAttribute(name, values.toArray( new String[values.size()] ));		
+		return addAttribute(name, values.toArray( new String[values.size()] ));
 	}
 	private String quote(String element) {
 		return "\"" + element + "\"";

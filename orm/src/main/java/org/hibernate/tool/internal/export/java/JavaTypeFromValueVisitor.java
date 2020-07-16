@@ -1,15 +1,7 @@
 package org.hibernate.tool.internal.export.java;
 
 import org.hibernate.HibernateException;
-import org.hibernate.mapping.Component;
-import org.hibernate.mapping.ManyToOne;
-import org.hibernate.mapping.Map;
-import org.hibernate.mapping.OneToMany;
-import org.hibernate.mapping.OneToOne;
-import org.hibernate.mapping.Set;
-import org.hibernate.mapping.SimpleValue;
-import org.hibernate.mapping.ToOne;
-import org.hibernate.mapping.Value;
+import org.hibernate.mapping.*;
 import org.hibernate.tool.internal.export.common.DefaultValueVisitor;
 import org.hibernate.type.CustomType;
 import org.hibernate.type.Type;
@@ -53,11 +45,12 @@ public class JavaTypeFromValueVisitor extends DefaultValueVisitor {
 	}
 	
 	private Object acceptToOne(ToOne value) {
-		return value.getReferencedEntityName(); // should get the cfg and lookup the persistenclass.			
+		PersistentClass persistentClass = value.getMetadata().getEntityBinding(value.getReferencedEntityName());
+		return persistentClass.getProxyInterfaceName(); // should get the cfg and lookup the persistenclass.
 	}
 	
 	public Object accept(OneToMany value) {
-		return value.getAssociatedClass().getClassName();
+		return value.getAssociatedClass().getProxyInterfaceName();
 	}
 	
 	private String toName(Class<?> c) {

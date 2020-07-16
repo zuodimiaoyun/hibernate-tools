@@ -36,7 +36,8 @@ abstract public class BasicPOJOClass implements POJOClass, MetaAttributeConstant
 	protected ImportContext importContext;
 	protected MetaAttributable meta;
 	protected final Cfg2JavaTool c2j;
-	
+	protected static final String INDENT = "    ";
+
 	public BasicPOJOClass(MetaAttributable ma, Cfg2JavaTool c2j) {
 		this.meta = ma;
 		this.c2j = c2j;		
@@ -58,7 +59,7 @@ abstract public class BasicPOJOClass implements POJOClass, MetaAttributeConstant
 				String element = (String) values.next();
 				importContext.importType(element);				
 			}
-		}	
+		}
 	}
 	
 	protected String getPackageDeclaration(String pkgName) {
@@ -186,7 +187,7 @@ abstract public class BasicPOJOClass implements POJOClass, MetaAttributeConstant
 			return "";
 		}
 		else {
-			return "extends " + extendz;
+			return " extends " + extendz;
 		}
 	}
 
@@ -196,7 +197,7 @@ abstract public class BasicPOJOClass implements POJOClass, MetaAttributeConstant
 			return "";
 		}
 		else {
-			return "implements " + implementz;
+			return " implements " + implementz;
 		}
 	}
 	
@@ -309,7 +310,7 @@ abstract public class BasicPOJOClass implements POJOClass, MetaAttributeConstant
 	}
 	
 	public String generateBasicAnnotation(Property property) {
-		StringBuffer annotations = new StringBuffer( "    " );
+		StringBuffer annotations = new StringBuffer(INDENT);
 		if(property.getValue() instanceof SimpleValue) {
 			if (hasVersionProperty())
 				if (property.equals(getVersionProperty()))
@@ -343,7 +344,7 @@ abstract public class BasicPOJOClass implements POJOClass, MetaAttributeConstant
 	}
 	
 	public String generateAnnColumnAnnotation(Property property) {
-		StringBuffer annotations = new StringBuffer( "    " );
+		StringBuffer annotations = new StringBuffer(INDENT);
 		boolean insertable = property.isInsertable();
 		boolean updatable = property.isUpdateable();
 		if ( property.isComposite() ) {
@@ -812,7 +813,9 @@ abstract public class BasicPOJOClass implements POJOClass, MetaAttributeConstant
 		if ( override != null ) {
 			return MetaAttributeHelper.getMetaAsString( override );
 		}
-		else {
+		else if(isInterface()) {
+			return "";
+		}else{
 			return defaultModifiers;
 		}
 	}
@@ -967,7 +970,6 @@ abstract public class BasicPOJOClass implements POJOClass, MetaAttributeConstant
 		} else {
 			return null;
 		}
-	}	
-	
+	}
 }
  

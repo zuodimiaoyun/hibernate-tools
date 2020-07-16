@@ -289,12 +289,12 @@ public class OverrideRepository  {
 				return OverrideRepository.this.excludeTable(ti);
 			}
 
-			public Map<String,MetaAttribute> tableToMetaAttributes(TableIdentifier tableIdentifier) {
-				return OverrideRepository.this.tableToMetaAttributes(tableIdentifier);
+			public Map<String,MetaAttribute> tableToMetaAttributes(Table table) {
+				return OverrideRepository.this.tableToMetaAttributes(table);
 			}
 
-			public Map<String, MetaAttribute> columnToMetaAttributes(TableIdentifier tableIdentifier, String column) {
-				return OverrideRepository.this.columnToMetaAttributes(tableIdentifier, column);
+			public Map<String, MetaAttribute> columnToMetaAttributes(Table table, String column) {
+				return OverrideRepository.this.columnToMetaAttributes(table, column);
 			}
 
 			public boolean excludeColumn(TableIdentifier identifier, String columnName) {
@@ -510,7 +510,8 @@ public class OverrideRepository  {
 		};
 	}
 
-	protected Map<String, MetaAttribute> columnToMetaAttributes(TableIdentifier tableIdentifier, String column) {
+	protected Map<String, MetaAttribute> columnToMetaAttributes(Table table, String column) {
+		TableIdentifier tableIdentifier = TableIdentifier.create(table);
 		MultiValuedMap<String, SimpleMetaAttribute> specific = columnMetaAttributes.get( new TableColumnKey(tableIdentifier, column) );
 		if(specific!=null && !specific.isEmpty()) {
 			return toMetaAttributes(specific);
@@ -520,12 +521,12 @@ public class OverrideRepository  {
 	}
 
 	// TODO: optimize
-	protected Map<String,MetaAttribute> tableToMetaAttributes(TableIdentifier identifier) {
-		MultiValuedMap<String, SimpleMetaAttribute> specific = tableMetaAttributes.get( identifier );
+	protected Map<String,MetaAttribute> tableToMetaAttributes(Table table) {
+		MultiValuedMap<String, SimpleMetaAttribute> specific = tableMetaAttributes.get( TableIdentifier.create(table) );
 		if(specific!=null && !specific.isEmpty()) {
 			return toMetaAttributes(specific);
 		}
-		MultiValuedMap<String, SimpleMetaAttribute> general = findGeneralAttributes( identifier );
+		MultiValuedMap<String, SimpleMetaAttribute> general = findGeneralAttributes( TableIdentifier.create(table) );
 		if(general!=null && !general.isEmpty()) {
 			return toMetaAttributes(general);
 		}

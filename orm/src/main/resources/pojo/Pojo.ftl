@@ -1,5 +1,5 @@
 ${pojo.getPackageDeclaration()}
-// Generated ${date} by Hibernate Tools ${version}
+<#--// Generated ${date} by Hibernate Tools ${version}-->
 
 <#assign classbody>
 <#include "PojoTypeDeclaration.ftl"/> {
@@ -7,13 +7,14 @@ ${pojo.getPackageDeclaration()}
 <#if !pojo.isInterface()>
 <#include "PojoFields.ftl"/>
 
-<#include "PojoConstructors.ftl"/>
+<#--<#include "PojoConstructors.ftl"/>-->
    
-<#include "PojoPropertyAccessors.ftl"/>
+<#--<#include "PojoPropertyAccessors.ftl"/>-->
 
-<#include "PojoToString.ftl"/>
+<#--<#include "PojoToString.ftl"/>-->
 
-<#include "PojoEqualsHashcode.ftl"/>
+<#--<#include "PojoEqualsHashcode.ftl"/>-->
+<#include "PojoFieldHandle.ftl"/>
 
 <#else>
 <#include "PojoInterfacePropertyAccessors.ftl"/>

@@ -117,18 +117,18 @@ public interface RevengStrategy {
 
 	/**
 	 * Return the list of metaattributes to assign to classes created based on the given table 
-	 * @param tableIdentifier
+	 * @param table
 	 * @return a Map from String to {@link MetaAttribute}
 	 */
-	public Map<String,MetaAttribute> tableToMetaAttributes(TableIdentifier tableIdentifier);
+	public Map<String,MetaAttribute> tableToMetaAttributes(Table table);
 	
 	/**
 	 * Return the list of metaattributes to assign to properties created based on the given column 
-	 * @param tableIdentifier
+	 * @param table
 	 * @param column
 	 * @return a Map from String to {@link MetaAttribute}
 	 */
-	public Map<String, MetaAttribute> columnToMetaAttributes(TableIdentifier identifier, String column);
+	public Map<String, MetaAttribute> columnToMetaAttributes(Table table, String column);
 	
 	/** Should this foreignkey be excluded as a oneToMany */
 	public boolean excludeForeignKeyAsCollection(String keyname, TableIdentifier fromTable, List<?> fromColumns, TableIdentifier referencedTable, List<?> referencedColumns);
@@ -190,5 +190,7 @@ public interface RevengStrategy {
 
 	public AssociationInfo foreignKeyToAssociationInfo(ForeignKey foreignKey);
 	public AssociationInfo foreignKeyToInverseAssociationInfo(ForeignKey foreignKey);
-		
+
+	String getEntityProxyInterfaceClass(String entity);
+
 }

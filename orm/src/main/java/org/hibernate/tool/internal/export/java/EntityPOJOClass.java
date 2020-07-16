@@ -1,15 +1,9 @@
 package org.hibernate.tool.internal.export.java;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Properties;
-import java.util.Set;
-import java.util.StringTokenizer;
+import java.util.*;
 
+import org.hibernate.MappingException;
 import org.hibernate.boot.Metadata;
 import org.hibernate.id.PersistentIdentifierGenerator;
 import org.hibernate.id.enhanced.TableGenerator;
@@ -40,12 +34,36 @@ import org.hibernate.type.ForeignKeyDirection;
 
 public class EntityPOJOClass extends BasicPOJOClass {
 
+	private static final String CREATED_AT = "createdAt";
+	private static final String CREATED_BY = "createdBy";
+	private static final String MODIFIED_AT = "modifiedAt";
+	private static final String MODIFIED_BY = "modifiedBy";
+	private static final String IS_DELETED = "isDeleted";
+	private static final String DELETED_FLAG = "1";
+	private static final String UN_DELETED_FLAG = "0";
+
 	private PersistentClass clazz;
+
+	private Optional<Property> createdAtProperty;
+	private Optional<Property> createdByProperty;
+	private Optional<Property> modifiedAtProperty;
+	private Optional<Property> modifiedByProperty;
+	private Optional<Property> isDeletedProperty;
 
 	public EntityPOJOClass(PersistentClass clazz, Cfg2JavaTool cfg) {
 		super(clazz, cfg);
 		this.clazz = clazz;
 		init();
+	}
+
+	@Override
+	protected void init() {
+		super.init();
+		createdAtProperty = getSingleColumnProperty(CREATED_AT);
+		createdByProperty = getSingleColumnProperty(CREATED_BY);
+		modifiedAtProperty = getSingleColumnProperty(MODIFIED_AT);
+		modifiedByProperty = getSingleColumnProperty(MODIFIED_BY);
+		isDeletedProperty = getSingleColumnProperty(IS_DELETED);
 	}
 
 	protected String getMappedClassName() {
@@ -112,8 +130,10 @@ public class EntityPOJOClass extends BasicPOJOClass {
 			StringBuffer sbuf = new StringBuffer();
 			for ( Iterator<String> iter = interfaces.iterator(); iter.hasNext() ; ) {
 				//sbuf.append(JavaTool.shortenType(iter.next().toString(), pc.getImports() ) );
-				sbuf.append( iter.next() );
-				if ( iter.hasNext() ) sbuf.append( "," );
+				String implItem = iter.next();
+				importType(implItem);
+				sbuf.append( StringHelper.unqualify(implItem) );
+				if ( iter.hasNext() ) sbuf.append( ", " );
 			}
 			return sbuf.toString();
 		}
@@ -221,7 +241,7 @@ public class EntityPOJOClass extends BasicPOJOClass {
 		KeyValue identifier = clazz.getIdentifier();
 		String strategy = null;
 		Properties properties = null;
-		StringBuffer wholeString = new StringBuffer( "    " );
+		StringBuffer wholeString = new StringBuffer(INDENT);
 		if ( identifier instanceof Component ) {
 
 			wholeString.append( AnnotationBuilder.createAnnotation( importType("javax.persistence.EmbeddedId") ).getResult());
@@ -233,7 +253,8 @@ public class EntityPOJOClass extends BasicPOJOClass {
 			StringBuffer idResult = new StringBuffer();
 			AnnotationBuilder builder = AnnotationBuilder.createAnnotation( importType("javax.persistence.Id") );
 			idResult.append(builder.getResult());
-			idResult.append(" ");
+			idResult.append("\n");
+			idResult.append(INDENT);
 
 			boolean isGenericGenerator = false; //TODO: how to handle generic now??
 			if ( !"assigned".equals( strategy ) ) {
@@ -361,7 +382,7 @@ public class EntityPOJOClass extends BasicPOJOClass {
 			}
 		}
 
-		StringBuffer annotations = new StringBuffer( "    " );
+		StringBuffer annotations = new StringBuffer(INDENT);
 		if ( span == 1 ) {
 				Selectable selectable = columnIterator.next();
 				buildJoinColumnAnnotation( selectable, null, annotations, insertable, updatable );
@@ -445,10 +466,12 @@ public class EntityPOJOClass extends BasicPOJOClass {
 	}
 
 	public String generateManyToOneAnnotation(Property property) {
-		StringBuffer buffer = new StringBuffer(AnnotationBuilder.createAnnotation( importType("javax.persistence.ManyToOne") )
-				.addAttribute( "cascade", getCascadeTypes(property))
-				.addAttribute( "fetch", getFetchType(property))
-				.getResult());
+		StringBuffer buffer = new StringBuffer(INDENT);
+		AnnotationBuilder builder = AnnotationBuilder.createAnnotation( importType("javax.persistence.ManyToOne") )
+			.addAttribute( "cascade", getCascadeTypes(property))
+			.addAttribute( "fetch", getFetchType(property));
+		addTargetEntityAnnotation(builder, property);
+		buffer.append(builder.getResult());
 		buffer.append(getHibernateCascadeTypeAnnotation(property));
 		return buffer.toString();
 	}
@@ -484,8 +507,9 @@ public class EntityPOJOClass extends BasicPOJOClass {
 		if ( oneToOne.getForeignKeyType().equals(ForeignKeyDirection.TO_PARENT) ){
 			ab.addQuotedAttribute("mappedBy", getOneToOneMappedBy(md, oneToOne));
 		}
-
-		StringBuffer buffer = new StringBuffer(ab.getResult());
+		addTargetEntityAnnotation(ab, property);
+		StringBuffer buffer = new StringBuffer(INDENT);
+		buffer.append(ab.getResult());
 		buffer.append(getHibernateCascadeTypeAnnotation(property));
 
 		if ( pkIsAlsoFk && oneToOne.getForeignKeyType().equals(ForeignKeyDirection.FROM_PARENT) ){
@@ -564,7 +588,7 @@ public class EntityPOJOClass extends BasicPOJOClass {
 	}
 
 	public String generateCollectionAnnotation(Property property, Metadata md) {
-		StringBuffer annotation = new StringBuffer();
+		StringBuffer annotation = new StringBuffer(INDENT);
 		Value value = property.getValue();
 		if ( value != null && value instanceof Collection) {
 			Collection collection = (Collection) value;
@@ -577,6 +601,7 @@ public class EntityPOJOClass extends BasicPOJOClass {
 					mappedBy = getOneToManyMappedBy( md, collection );
 					ab.addQuotedAttribute( "mappedBy", mappedBy );
 				}
+				addTargetEntityAnnotation(ab, property);
 				annotation.append( ab.getResult() );
 
 				if (mappedBy == null) annotation.append("\n").append( generateJoinColumnsAnnotation(property, md) );
@@ -593,6 +618,7 @@ public class EntityPOJOClass extends BasicPOJOClass {
 					mappedBy = getManyToManyMappedBy( md, collection );
 					ab.addQuotedAttribute( "mappedBy", mappedBy );
 				}
+				addTargetEntityAnnotation(ab, property);
 				annotation.append(ab.getResult());
 				if (mappedBy == null) {
 					annotation.append("\n    @");
@@ -604,9 +630,9 @@ public class EntityPOJOClass extends BasicPOJOClass {
 					if ( StringHelper.isNotEmpty( table.getSchema() ) ) {
 						annotation.append(", schema=\"").append( table.getSchema() ).append("\"");
 					}
-					if ( StringHelper.isNotEmpty( table.getCatalog() ) ) {
-						annotation.append(", catalog=\"").append( table.getCatalog() ).append("\"");
-					}
+//					if ( StringHelper.isNotEmpty( table.getCatalog() ) ) {
+//						annotation.append(", catalog=\"").append( table.getCatalog() ).append("\"");
+//					}
 					String uniqueConstraint = generateAnnTableUniqueConstraint(table);
 					if ( uniqueConstraint.length() > 0 ) {
 						annotation.append(", uniqueConstraints=").append(uniqueConstraint);
@@ -921,5 +947,183 @@ public class EntityPOJOClass extends BasicPOJOClass {
 	{
 		return clazz.getVersion();
 	}
+
+	public String getLombokAnnotation(){
+		Set<String> associationSet = new LinkedHashSet<>();
+		Iterator<Property> propertyIterator = getAllPropertiesIterator();
+		while (propertyIterator.hasNext()){
+			Property property = propertyIterator.next();
+			if(property.getType().isAssociationType()){
+				associationSet.add(property.getName());
+			}
+		}
+		List<AnnotationBuilder> annotationBuilderList = new ArrayList<>();
+		annotationBuilderList.add(AnnotationBuilder.createAnnotation(importType("lombok.Data")));
+		annotationBuilderList.add(AnnotationBuilder.createAnnotation(importType("lombok.experimental.SuperBuilder")));
+		annotationBuilderList.add(AnnotationBuilder.createAnnotation(importType("lombok.AllArgsConstructor")));
+		annotationBuilderList.add(AnnotationBuilder.createAnnotation(importType("lombok.NoArgsConstructor")));
+		annotationBuilderList.add(AnnotationBuilder.createAnnotation(importType("lombok.ToString")).addQuotedAttributes("exclude", associationSet.iterator()));
+		annotationBuilderList.add(AnnotationBuilder.createAnnotation(importType("lombok.EqualsAndHashCode")).addQuotedAttributes("exclude", associationSet.iterator()));
+
+
+		StringBuilder result = new StringBuilder();
+		for(AnnotationBuilder builder : annotationBuilderList){
+			result.append(builder.getResult());
+			result.append("\n");
+		}
+
+		return result.substring(0, result.length() - 1).toString();
+	}
+
+	public boolean hasDeleteProperty(){
+		return isDeletedProperty.isPresent();
+	}
+
+	public boolean hasCreatedAtProperty(){
+		return createdAtProperty.isPresent();
+	}
+
+	public boolean hasCreatedByProperty(){
+		return createdByProperty.isPresent();
+	}
+
+	public boolean hasModifiedAtProperty(){
+		return modifiedAtProperty.isPresent();
+	}
+
+	public boolean hasModifiedByProperty(){
+		return modifiedByProperty.isPresent();
+	}
+
+	public boolean isDeletedProperty(Property property){
+		return getIsDeletedProperty() == property;
+	}
+
+	public boolean isCreatedAtProperty(Property property){
+		return getCreatedAtProperty() == property;
+	}
+
+	public boolean isCreatedByProperty(Property property){
+		return getCreatedByProperty() == property;
+	}
+
+	public boolean isModifiedAtProperty(Property property){
+		return getModifiedAtProperty() == property;
+	}
+
+	public boolean isModifiedByProperty(Property property){
+		return getModifiedByProperty() == property;
+	}
+
+	public Property getCreatedAtProperty() {
+		return createdAtProperty.orElse(null);
+	}
+
+	public Property getCreatedByProperty() {
+		return createdByProperty.orElse(null);
+	}
+
+	public Property getModifiedAtProperty() {
+		return modifiedAtProperty.orElse(null);
+	}
+
+	public Property getModifiedByProperty() {
+		return modifiedByProperty.orElse(null);
+	}
+
+	public Property getIsDeletedProperty() {
+		return isDeletedProperty.orElse(null);
+	}
+
+	public static String getUnDeletedFlag() {
+		return UN_DELETED_FLAG;
+	}
+
+	public static String getDeletedFlag() {
+		return DELETED_FLAG;
+	}
+
+	public String getDeleteAnnotation(){
+		StringBuilder annotations = new StringBuilder();
+		if(hasDeleteProperty()){
+			String tableName = clazz.getTable().getName();
+			String deleteColumnName = ((Column)(getIsDeletedProperty().getColumnIterator().next())).getName();
+			String idColumnName = ((Column)(clazz.getIdentifierProperty().getColumnIterator().next())).getName();
+			String deleteSql = String.format("update %s set %s = %s where %s = ?", tableName, deleteColumnName, DELETED_FLAG, idColumnName);
+			String whereSql = String.format("%s = %s", deleteColumnName, UN_DELETED_FLAG);
+			annotations.append(AnnotationBuilder.createAnnotation(importType("org.hibernate.annotations.SQLDelete")).addQuotedAttribute("sql",deleteSql).getResult());
+			annotations.append("\n");
+			annotations.append(AnnotationBuilder.createAnnotation(importType("org.hibernate.annotations.Where")).addQuotedAttribute("clause", whereSql).getResult());
+			importType("javax.persistence.PreRemove");
+		}
+		return annotations.toString();
+	}
+
+	public String getModifiedAtAnnotation(){
+		if(hasModifiedAtProperty()){
+			return INDENT + AnnotationBuilder.createAnnotation(importType("org.springframework.data.annotation.LastModifiedDate")).getResult();
+		}
+		return "";
+	}
+	public String getModifiedByAnnotation(){
+		if(hasModifiedByProperty()){
+			return INDENT + AnnotationBuilder.createAnnotation(importType("org.springframework.data.annotation.LastModifiedBy")).getResult();
+		}
+		return "";
+	}
+
+	public String getCreatedAtAnnotation(){
+		if(hasCreatedAtProperty()){
+			return INDENT + AnnotationBuilder.createAnnotation(importType("org.springframework.data.annotation.CreatedDate")).getResult();
+		}
+		return "";
+	}
+	public String getCreatedByAnnotation(){
+		if(hasCreatedByProperty()){
+			return INDENT + AnnotationBuilder.createAnnotation(importType("org.springframework.data.annotation.CreatedBy")).getResult();
+		}
+		return "";
+	}
+
+	public Optional<Property> getSingleColumnProperty(String name){
+		try{
+			Optional<Property> property = Optional.of(clazz.getProperty(name));
+			return property.get().getColumnSpan() == 1 ? property : Optional.empty();
+		}catch (MappingException mappingException){
+			return Optional.empty();
+		}
+	}
+
+	public void addTargetEntityAnnotation(AnnotationBuilder annotationBuilder, Property property){
+		PersistentClass persistentClass = null;
+		String targetEntity = null;
+		Value value = property.getValue();
+		if(value instanceof Collection){
+			Collection collection = (Collection)value;
+			if(collection.isOneToMany()){
+				persistentClass = ((OneToMany)collection.getElement()).getAssociatedClass();
+				targetEntity = ((OneToMany)collection.getElement()).getReferencedEntityName();
+			}else{
+				//manyToMany
+				ManyToOne manyToOne = (ManyToOne) collection.getElement();
+				persistentClass = manyToOne.getMetadata().getEntityBinding(manyToOne.getReferencedEntityName());
+				targetEntity = manyToOne.getReferencedEntityName();
+			}
+		}else if(value instanceof ToOne){
+			ToOne toOne = (ToOne)value;
+			persistentClass = toOne.getMetadata().getEntityBinding(toOne.getReferencedEntityName());
+			targetEntity = property.getType().getName();
+		}else{
+			persistentClass = clazz;
+			targetEntity = property.getType().getName();
+		}
+		if ( persistentClass != null && targetEntity != null && persistentClass.getProxyInterfaceName() != null && ( !persistentClass.getProxyInterfaceName().equals( persistentClass.getClassName() ) ) ) {
+			annotationBuilder.addAttribute("targetEntity", StringHelper.unqualify(targetEntity) + ".class");
+		}
+
+
+	}
+
+
 
 }

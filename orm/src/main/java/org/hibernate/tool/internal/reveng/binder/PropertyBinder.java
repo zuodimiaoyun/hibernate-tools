@@ -1,9 +1,11 @@
 package org.hibernate.tool.internal.reveng.binder;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
 import org.hibernate.FetchMode;
+import org.hibernate.boot.model.naming.Identifier;
 import org.hibernate.mapping.Column;
 import org.hibernate.mapping.Fetchable;
 import org.hibernate.mapping.MetaAttribute;
@@ -72,17 +74,7 @@ class PropertyBinder extends AbstractBinder {
 	private Map<String,MetaAttribute> getColumnToMetaAttributesInRevengStrategy(
 			Table table,
 			String column) {
-		Map<String,MetaAttribute> result = null;
-		TableIdentifier tableIdentifier = TableIdentifier.create(table);
-		result = getRevengStrategy().columnToMetaAttributes(tableIdentifier, column);
-		if (result == null) {
-			tableIdentifier = RevengUtils.createTableIdentifier(
-					table, 
-					getDefaultCatalog(), 
-					getDefaultSchema());
-			result = getRevengStrategy().columnToMetaAttributes(tableIdentifier, column);
-		}
-		return result;
+		return getRevengStrategy().columnToMetaAttributes(table, column);
 	}
 	
 }

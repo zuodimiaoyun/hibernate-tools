@@ -78,9 +78,8 @@
         <module>orm</module>
         <module>maven</module>
         <module>ant</module>
-        <module>test</module>
         <module>utils</module>
-    </modules>
+	</modules>
 
     <properties>
         <ant.version>1.10.8</ant.version>
@@ -224,5 +223,19 @@
             </dependency>
          </dependencies>
     </dependencyManagement>
+	<!-- 项目部署到私服配置 -->
+	<distributionManagement> <!-- 远程部署管理信息 -->
+		<repository> <!--部署项目产生的构件到远程仓库需要的信息 -->
+			<id>beisen-releases</id>
+			<name>Nexus Release Repository</name>
+			<url>http://repository.beisen-inc.com/repository/maven-releases/</url>
+		</repository>
+
+		<snapshotRepository> <!-- 如果没有配置该元素，默认部署到repository元素配置的仓库 -->
+			<id>beisen-snapshots</id>
+			<name>Nexus Snapshot Repository</name>
+			<url>http://repository.beisen-inc.com/repository/maven-snapshots/</url>
+		</snapshotRepository>
+	</distributionManagement>
 
 </project>

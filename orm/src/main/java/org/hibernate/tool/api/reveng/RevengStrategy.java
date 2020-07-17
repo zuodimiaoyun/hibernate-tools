@@ -123,7 +123,7 @@ public interface RevengStrategy {
 	public Map<String,MetaAttribute> tableToMetaAttributes(Table table);
 	
 	/**
-	 * Return the list of metaattributes to assign to properties created based on the given column 
+	 * Return the list of metaattributes to assign to properties created based on the given column
 	 * @param table
 	 * @param column
 	 * @return a Map from String to {@link MetaAttribute}

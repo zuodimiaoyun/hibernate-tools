@@ -562,8 +562,19 @@ abstract public class BasicPOJOClass implements POJOClass, MetaAttributeConstant
 	 * @return String
 	 */
 	public String getGetterSignature(Property p) {
-		String prefix = c2j.getJavaTypeName( p, false).equals( "boolean" ) ? "is" : "get";
-		return prefix + beanCapitalize( p.getName() );
+		if("boolean".equals(c2j.getJavaTypeName( p, false))){
+			return p.getName().startsWith("is") ? p.getName() : "is" + beanCapitalize( p.getName() );
+		}else{
+			return "get" + beanCapitalize( p.getName() );
+		}
+	}
+
+	public String getSetterSignature(Property p){
+		if("boolean".equals(c2j.getJavaTypeName( p, false)) && p.getName().startsWith("is")){
+			return "set" + p.getName().substring(2);
+		}else{
+			return "set" + beanCapitalize( p.getName() );
+		}
 	}
 
 	/**

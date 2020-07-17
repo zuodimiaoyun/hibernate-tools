@@ -10,5 +10,5 @@ ${fieldComment}
     </#if>
     ${pojo.getPropertyGetModifiers(property)}${pojo.getJavaTypeName(property, jdk5)} ${pojo.getGetterSignature(property)}();
     
-    ${pojo.getPropertySetModifiers(property)}void set${pojo.getPropertyName(property)}(${pojo.getJavaTypeName(property, jdk5)} ${property.name});
+    ${pojo.getPropertySetModifiers(property)}void ${pojo.getSetterSignature(property)}(${pojo.getJavaTypeName(property, jdk5)} ${property.name});
 </#if></#foreach>

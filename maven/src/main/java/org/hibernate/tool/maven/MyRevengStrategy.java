@@ -6,6 +6,8 @@ import org.hibernate.mapping.Column;
 import org.hibernate.mapping.ForeignKey;
 import org.hibernate.mapping.MetaAttribute;
 import org.hibernate.mapping.Table;
+import org.hibernate.tool.GeneratorConfig;
+import org.hibernate.tool.GeneratorUtil;
 import org.hibernate.tool.api.reveng.AssociationInfo;
 import org.hibernate.tool.api.reveng.TableIdentifier;
 import org.hibernate.tool.internal.reveng.strategy.DefaultStrategy;
@@ -74,7 +76,7 @@ public class MyRevengStrategy extends DefaultStrategy {
 
     @Override
     public String tableToClassName(TableIdentifier tableIdentifier) {
-        return super.tableToClassName(tableIdentifier) + GeneratorConfig.getClassSuffix();
+        return (super.tableToClassName(tableIdentifier) + GeneratorConfig.getClassSuffix()).replace("Esb","ESB");
     }
 
 
@@ -90,7 +92,7 @@ public class MyRevengStrategy extends DefaultStrategy {
         //class-description
         String comment = table.getComment() == null || table.getComment().isEmpty() ? "TODO" : table.getComment();
         MetaAttribute classDescMeta = new MetaAttribute("class-description");
-        classDescMeta.addValue(String.format(classDesc, GeneratorConfig.getAutor(), LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), comment));
+        classDescMeta.addValue(String.format(classDesc, GeneratorConfig.getAuthor(), LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), comment));
         tableMeta.put(classDescMeta.getName(),classDescMeta);
         //interface
         if(GeneratorConfig.isGenInterface()){
@@ -105,7 +107,7 @@ public class MyRevengStrategy extends DefaultStrategy {
 
     @Override
     public String foreignKeyToEntityName(String keyname, TableIdentifier fromTable, List<?> fromColumnNames, TableIdentifier referencedTable, List<?> referencedColumnNames, boolean uniqueReference) {
-        String propertyName = getTrimSuffixSimpleClassName(referencedTable);
+        String propertyName = GeneratorUtil.getTrimSuffixSimpleClassName(getRoot().tableToClassName(referencedTable));
 
         if(!uniqueReference) {
             if(fromColumnNames!=null && fromColumnNames.size()==1) {
@@ -121,7 +123,7 @@ public class MyRevengStrategy extends DefaultStrategy {
 
     @Override
     public String foreignKeyToCollectionName(String keyname, TableIdentifier fromTable, List<?> fromColumns, TableIdentifier referencedTable, List<?> referencedColumns, boolean uniqueReference) {
-        String propertyName = pluralize(Introspector.decapitalize(getTrimSuffixSimpleClassName(fromTable)));
+        String propertyName = pluralize(Introspector.decapitalize(GeneratorUtil.getTrimSuffixSimpleClassName(getRoot().tableToClassName(fromTable))));
         if(!uniqueReference) {
             if(fromColumns!=null && fromColumns.size()==1) {
                 String columnName = ( (Column) fromColumns.get(0) ).getName();
@@ -149,7 +151,7 @@ public class MyRevengStrategy extends DefaultStrategy {
         if(GeneratorConfig.isGenInterface() || entityClassName == null){
             return null;
         }
-        String simpleEntityName = getTrimSuffixSimpleClassName(entityClassName);
+        String simpleEntityName = GeneratorUtil.getTrimSuffixSimpleClassName(entityClassName);
         String interfaceClassName = GeneratorConfig.getInterfaceClassByName(simpleEntityName);
         if(interfaceClassName != null){
             return interfaceClassName;
@@ -184,7 +186,7 @@ public class MyRevengStrategy extends DefaultStrategy {
 
     @Override
     public String foreignKeyToManyToManyName(ForeignKey fromKey, TableIdentifier middleTable, ForeignKey toKey, boolean uniqueReference) {
-        String propertyName = Introspector.decapitalize( getTrimSuffixSimpleClassName( TableIdentifier.create(toKey.getReferencedTable())) );
+        String propertyName = Introspector.decapitalize( GeneratorUtil.getTrimSuffixSimpleClassName( getRoot().tableToClassName(TableIdentifier.create(toKey.getReferencedTable()))) );
         propertyName = pluralize( propertyName );
 
         if(!uniqueReference) {
@@ -215,14 +217,6 @@ public class MyRevengStrategy extends DefaultStrategy {
             return metas;
         }
         return null;
-    }
-
-    private String getTrimSuffixSimpleClassName(TableIdentifier tableIdentifier){
-        return getTrimSuffixSimpleClassName(getRoot().tableToClassName(tableIdentifier));
-    }
-
-    private String getTrimSuffixSimpleClassName(String className){
-        return GeneratorUtil.trimSuffix(StringHelper.unqualify(className), GeneratorConfig.getClassSuffix());
     }
 
 

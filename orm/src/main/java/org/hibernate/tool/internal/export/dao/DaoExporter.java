@@ -7,7 +7,7 @@ import org.hibernate.tool.internal.export.java.JavaExporter;
 
 public class DaoExporter extends JavaExporter {
 
-    private static final String DAO_DAOHOME_FTL = "dao/daohome.ftl";
+    private static final String DAO_DAOHOME_FTL = "dao/JpaRepository.ftl";
 
     private String sessionFactoryName = "SessionFactory";
 
@@ -18,7 +18,7 @@ public class DaoExporter extends JavaExporter {
     protected void init() {
     	super.init();
     	getProperties().put(TEMPLATE_NAME, DAO_DAOHOME_FTL);
-    	getProperties().put(FILE_PATTERN, "{package-name}/{class-name}Home.java");
+    	getProperties().put(FILE_PATTERN, "{package-name}/{class-name}.java");
     }
     
     protected void exportComponent(Map<String, Object> additionalContext, POJOClass element) {

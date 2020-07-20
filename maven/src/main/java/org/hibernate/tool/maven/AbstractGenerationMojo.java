@@ -28,6 +28,7 @@ import java.util.Properties;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.tools.ant.BuildException;
+import org.hibernate.tool.GeneratorConfig;
 import org.hibernate.tool.api.metadata.MetadataDescriptor;
 import org.hibernate.tool.api.metadata.MetadataDescriptorFactory;
 import org.hibernate.tool.api.metadata.MetadataConstants;
@@ -80,16 +81,63 @@ public abstract class AbstractGenerationMojo extends AbstractMojo {
     @Parameter(defaultValue = "${project.basedir}/src/main/hibernate/hibernate.properties")
     private File propertyFile;
 
+    @Parameter(defaultValue = "Entity")
+    private String entitySuffix;
+
+    @Parameter(defaultValue = "Repository")
+    private String daoSuffix;
+
+    @Parameter(defaultValue = "any")
+    private String author;
+
+    @Parameter(defaultValue = ".*")
+    private String includeTables;
+
+    @Parameter(defaultValue = "(flyway_.*)|(qrtz_.*)")
+    private String excludeTables;
+
+    @Parameter(defaultValue = "oneops")
+    private String db;
+
+    @Parameter(defaultValue = "com.beisen.oneops.api.model")
+    private String interfaceLoadPackage;
+
+    @Parameter(defaultValue = "com.beisen.oneops.internal.entity")
+    private String entityLoadPackage;
+
+
     // Not exposed for now
     private boolean preferBasicCompositeIds = true;
 
     public void execute() {
+        settingConfig();
         getLog().info("Starting " + this.getClass().getSimpleName() + "...");
         RevengStrategy strategy = setupReverseEngineeringStrategy();
         Properties properties = loadPropertiesFile();
         MetadataDescriptor jdbcDescriptor = createJdbcDescriptor(strategy, properties);
         executeExporter(jdbcDescriptor);
         getLog().info("Finished " + this.getClass().getSimpleName() + "!");
+    }
+
+    public void settingConfig() {
+        GeneratorConfig.setInterfaceLoadPackage(interfaceLoadPackage);
+        GeneratorConfig.setEntityLoadPackage(entityLoadPackage);
+        GeneratorConfig.setAuthor(author);
+        GeneratorConfig.setDb(db);
+        GeneratorConfig.setExcludeTables(excludeTables);
+        GeneratorConfig.setIncludeTables(includeTables);
+        GeneratorConfig.setEntitySuffix(entitySuffix);
+        GeneratorConfig.setDaoSuffix(daoSuffix);
+        if(this instanceof GenerateDaoMojo){
+            GeneratorConfig.setGenEntity();
+            GeneratorConfig.setClassSuffix(daoSuffix);
+        }else if(this instanceof GenerateJavaMojo){
+            GeneratorConfig.setGenEntity();
+            GeneratorConfig.setClassSuffix(entitySuffix);
+        }else if(this instanceof GenerateEntityInterfaceMojo){
+            GeneratorConfig.setGenInterface();
+            GeneratorConfig.setClassSuffix("");
+        }
     }
 
     private RevengStrategy setupReverseEngineeringStrategy() {

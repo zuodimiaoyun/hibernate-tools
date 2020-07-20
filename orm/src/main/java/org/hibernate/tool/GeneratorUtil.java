@@ -1,4 +1,9 @@
-package org.hibernate.tool.maven;
+package org.hibernate.tool;
+
+import org.hibernate.internal.util.StringHelper;
+import org.hibernate.tool.api.reveng.RevengStrategy;
+import org.hibernate.tool.api.reveng.TableIdentifier;
+import org.hibernate.tool.internal.reveng.strategy.AbstractStrategy;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -214,5 +219,8 @@ public class GeneratorUtil {
         return str;
     }
 
+    public static String getTrimSuffixSimpleClassName(String className){
+        return GeneratorUtil.trimSuffix(StringHelper.unqualify(className), GeneratorConfig.getClassSuffix());
+    }
 
 }

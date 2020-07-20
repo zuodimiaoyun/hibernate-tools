@@ -27,6 +27,8 @@ import org.hibernate.mapping.Table;
 import org.hibernate.mapping.ToOne;
 import org.hibernate.mapping.UniqueKey;
 import org.hibernate.mapping.Value;
+import org.hibernate.tool.GeneratorConfig;
+import org.hibernate.tool.GeneratorUtil;
 import org.hibernate.tool.internal.util.AnnotationBuilder;
 import org.hibernate.tool.internal.util.IteratorTransformer;
 import org.hibernate.tool.internal.util.SkipBackRefPropertyIterator;
@@ -1124,6 +1126,21 @@ public class EntityPOJOClass extends BasicPOJOClass {
 
 	}
 
+	public String getEntityClass(){
+		String entitySimpleClassName = GeneratorUtil.getTrimSuffixSimpleClassName(getDeclarationName());
+		return GeneratorConfig.getEntityClassByName(entitySimpleClassName + GeneratorConfig.getEntitySuffix());
+	}
 
+	public String getEntityIdClass(){
+		String idClass;
+		try{
+			 idClass = GeneratorUtil.upperFirst(getIdentifierProperty().getType().getName());
+			Class.forName(idClass);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return "Integer";
+		}
+		return idClass;
+	}
 
 }

@@ -58,6 +58,10 @@ public class EntityPOJOClass extends BasicPOJOClass {
 		init();
 	}
 
+	public PersistentClass getPersistentClass(){
+		return clazz;
+	}
+
 	@Override
 	protected void init() {
 		super.init();
@@ -1119,6 +1123,7 @@ public class EntityPOJOClass extends BasicPOJOClass {
 			persistentClass = clazz;
 			targetEntity = property.getType().getName();
 		}
+		importType(targetEntity);
 		if ( persistentClass != null && targetEntity != null && persistentClass.getProxyInterfaceName() != null && ( !persistentClass.getProxyInterfaceName().equals( persistentClass.getClassName() ) ) ) {
 			annotationBuilder.addAttribute("targetEntity", StringHelper.unqualify(targetEntity) + ".class");
 		}

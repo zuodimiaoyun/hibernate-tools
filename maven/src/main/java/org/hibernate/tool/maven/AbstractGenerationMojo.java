@@ -105,6 +105,8 @@ public abstract class AbstractGenerationMojo extends AbstractMojo {
     @Parameter(defaultValue = "com.beisen.oneops.internal.entity")
     private String entityLoadPackage;
 
+    @Parameter(defaultValue = "true")
+    private boolean overWrite;
 
     // Not exposed for now
     private boolean preferBasicCompositeIds = true;
@@ -128,6 +130,7 @@ public abstract class AbstractGenerationMojo extends AbstractMojo {
         GeneratorConfig.setIncludeTables(includeTables);
         GeneratorConfig.setEntitySuffix(entitySuffix);
         GeneratorConfig.setDaoSuffix(daoSuffix);
+        GeneratorConfig.setOverWrite(overWrite);
         if(this instanceof GenerateDaoMojo){
             GeneratorConfig.setGenEntity();
             GeneratorConfig.setClassSuffix(daoSuffix);

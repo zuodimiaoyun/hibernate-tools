@@ -10,8 +10,10 @@ import java.util.StringTokenizer;
 
 import org.hibernate.internal.util.StringHelper;
 import org.hibernate.mapping.Component;
+import org.hibernate.tool.GeneratorUtil;
 import org.hibernate.tool.api.export.ExporterConstants;
 import org.hibernate.tool.internal.export.java.ComponentPOJOClass;
+import org.hibernate.tool.internal.export.java.EntityPOJOClass;
 import org.hibernate.tool.internal.export.java.POJOClass;
 
 
@@ -43,9 +45,9 @@ public class GenericExporter extends AbstractExporter {
 						ge.getCfg2JavaTool().getPOJOIterator(
 								ge.getMetadata().getEntityBindings().iterator());
 				Map<String, Object> additionalContext = new HashMap<String, Object>();
-				while ( iterator.hasNext() ) {					
+				while ( iterator.hasNext() ) {
 					POJOClass element = (POJOClass) iterator.next();
-					ge.exportPersistentClass( additionalContext, element );					
+					ge.exportPersistentClass( additionalContext, element );
 				}
 			}
 		});
@@ -60,6 +62,12 @@ public class GenericExporter extends AbstractExporter {
 				Map<String, Object> additionalContext = new HashMap<String, Object>();
 				while ( iterator.hasNext() ) {					
 					POJOClass element = (POJOClass) iterator.next();
+					if(element instanceof EntityPOJOClass){
+						boolean isEntityExclude = GeneratorUtil.tableExport(((EntityPOJOClass)element).getPersistentClass().getTable().getName());
+						if(isEntityExclude){
+							continue;
+						}
+					}
 					ConfigurationNavigator.collectComponents(components, element);											
 				}
 						
@@ -120,10 +128,16 @@ public class GenericExporter extends AbstractExporter {
 	}
 
 	protected void exportPersistentClass(Map<String, Object> additionalContext, POJOClass element) {
-		exportPOJO(additionalContext, element);		
+		exportPOJO(additionalContext, element);
 	}
 
 	protected void exportPOJO(Map<String, Object> additionalContext, POJOClass element) {
+		if(element instanceof EntityPOJOClass){
+			boolean isEntityExclude = GeneratorUtil.tableExport(((EntityPOJOClass)element).getPersistentClass().getTable().getName());
+			if(isEntityExclude){
+				return;
+			}
+		}
 		TemplateProducer producer = new TemplateProducer(getTemplateHelper(),getArtifactCollector());					
 		additionalContext.put("pojo", element);
 		additionalContext.put("clazz", element.getDecoratedObject());

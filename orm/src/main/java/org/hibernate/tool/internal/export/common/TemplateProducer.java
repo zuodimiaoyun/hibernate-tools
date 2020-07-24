@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.hibernate.tool.GeneratorConfig;
 import org.hibernate.tool.api.export.ArtifactCollector;
 import org.jboss.logging.Logger;
 
@@ -36,12 +37,16 @@ public class TemplateProducer {
 		try {
 			
 			th.ensureExistence( destination );    
-	     
+
 			ac.addFile(destination, fileType);
-			log.debug("Writing " + identifier + " to " + destination.getAbsolutePath() );
-			fileWriter = new FileWriter(destination);
-            fileWriter.write(tempResult);			
-		} 
+			if(destination.exists() && !GeneratorConfig.isOverWrite()){
+				log.info("File " + identifier + " in " + destination.getAbsolutePath() + " exist!, skip!");
+			}else{
+				log.info("Writing " + identifier + " to " + destination.getAbsolutePath() );
+				fileWriter = new FileWriter(destination);
+				fileWriter.write(tempResult);
+			}
+		}
 		catch (Exception e) {
 		    throw new RuntimeException("Error while writing result to file", e);	
 		} finally {

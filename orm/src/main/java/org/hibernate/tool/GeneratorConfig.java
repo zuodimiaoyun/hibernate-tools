@@ -21,6 +21,7 @@ public class GeneratorConfig {
     private static GenClassType genClassType;
     private static String entitySuffix;
     private static String daoSuffix;
+    private static boolean overWrite;
     private static final Map<String, String> apiClassMapping = new HashMap<>();
     private static final Map<String, String> entityClassMapping = new HashMap<>();
 
@@ -106,6 +107,14 @@ public class GeneratorConfig {
 
     public static void setDaoSuffix(String daoSuffix) {
         GeneratorConfig.daoSuffix = daoSuffix;
+    }
+
+    public static boolean isOverWrite() {
+        return overWrite;
+    }
+
+    public static void setOverWrite(boolean overWrite) {
+        GeneratorConfig.overWrite = overWrite;
     }
 
     public static boolean isGenInterface(){

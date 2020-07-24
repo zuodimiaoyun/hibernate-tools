@@ -76,13 +76,26 @@ public class MyRevengStrategy extends DefaultStrategy {
 
     @Override
     public String tableToClassName(TableIdentifier tableIdentifier) {
-        return (super.tableToClassName(tableIdentifier) + GeneratorConfig.getClassSuffix()).replace("Esb","ESB");
+        String className = (super.tableToClassName(tableIdentifier) + GeneratorConfig.getClassSuffix()).replace("Esb","ESB");
+        String simpleClassName = StringHelper.unqualify(className);
+        if(GeneratorConfig.isGenEntity()){
+            String entityClass = GeneratorConfig.getEntityClassByName(simpleClassName);
+            if(entityClass != null && !entityClass.isEmpty()){
+                return entityClass;
+            }
+        }else if(GeneratorConfig.isGenInterface()){
+            String interfaceClass = GeneratorConfig.getInterfaceClassByName(simpleClassName);
+            if(interfaceClass != null && !interfaceClass.isEmpty()){
+                return interfaceClass;
+            }
+        }
+        return className;
     }
 
 
     @Override
     public boolean excludeTable(TableIdentifier ti) {
-        return !ti.getName().matches(GeneratorConfig.getIncludeTables()) || ti.getName().matches(GeneratorConfig.getExcludeTables());
+        return false;
     }
 
 

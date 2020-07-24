@@ -223,4 +223,8 @@ public class GeneratorUtil {
         return GeneratorUtil.trimSuffix(StringHelper.unqualify(className), GeneratorConfig.getClassSuffix());
     }
 
+    public static boolean tableExport(String tableName){
+        return !tableName.matches(GeneratorConfig.getIncludeTables()) || tableName.matches(GeneratorConfig.getExcludeTables());
+    }
+
 }

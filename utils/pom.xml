@@ -25,7 +25,7 @@
 	</parent>
 
 	<artifactId>hibernate-tools-utils</artifactId>
-
+	<version>6.0.0</version>
 	<name>Hibernate Tools Common Utilities</name>
 	<description>Hibernate Tools Common Utilities</description>
 	<packaging>jar</packaging>
